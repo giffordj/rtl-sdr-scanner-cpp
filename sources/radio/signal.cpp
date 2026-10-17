@@ -29,7 +29,7 @@ bool Signal::isMaximalTime(const std::chrono::milliseconds& now) const { return 
 
 bool Signal::isTimeout(const std::chrono::milliseconds& now) const { return m_lastDataTime + m_config.recordingTimeout() <= now; }
 
-bool Signal::needFlush(const std::chrono::milliseconds& now) const { return m_lastDataTime == now && isMinimalTime(now); }
+bool Signal::needFlush(const std::chrono::milliseconds& now) const { return isMinimalTime(now) && !isTimeout(now); }
 
 float Signal::getPower() const { return m_power; }
 

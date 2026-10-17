@@ -34,6 +34,10 @@ constexpr auto SPECTROGRAM_SEND_INTERVAL = std::chrono::milliseconds(1000);  // 
 
 // RECORDER SETTINGS
 constexpr auto RECORDER_SAMPLE_RATE_DECIMATOR = 2000000;
+// Safety cap: each range becomes its own GNU Radio processing chain; an
+// oversized configuration overloads the host and the scanner can abort on
+// SoapySDR OVERFLOW (upstream issue #107). Extra ranges are skipped.
+constexpr auto MAX_RANGE_PROCESSORS = 32;
 
 // SOURCE AND RECORDING NAMES
 constexpr auto GAIN_TESTER_SOURCE_NAME = "gain tester";

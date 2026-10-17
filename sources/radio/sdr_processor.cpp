@@ -28,7 +28,7 @@ SdrProcessor::SdrProcessor(
   const auto getFrequency = [frequencyRange]() { return frequencyRange.center(); };
   const auto sampleRate = device.sample_rate;
   const auto sendSpectrogram = [&remoteController, device, sampleRate](const std::chrono::milliseconds& time, const Frequency& frequency, const std::vector<int8_t>& data) {
-    SpectrogramQuery spectrogram(device.alias.empty() ? SCANNER_SOURCE_NAME : GAIN_TESTER_SOURCE_NAME, time, frequency, sampleRate, encode_base64(data.data(), data.size()));
+    SpectrogramQuery spectrogram(SCANNER_SOURCE_NAME, time, frequency, sampleRate, encode_base64(data.data(), data.size()));
     remoteController.sendSpectrogram(device, spectrogram);
   };
 

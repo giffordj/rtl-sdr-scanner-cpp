@@ -17,7 +17,7 @@ struct Recording {
   Frequency recordingFrequency;
   Frequency bandwidth;
   std::string modulation;
-  bool flush;
+  bool flush = false;
 
   Frequency shift() const { return recordingFrequency - deviceFrequency; }
 };

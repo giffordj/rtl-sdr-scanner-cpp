@@ -37,8 +37,16 @@ SdrDevice::SdrDevice(const Config& config, const Device& device, RemoteControlle
   m_connector.connect<Block>(m_source, gr::zeromq::pub_sink::make(sizeof(gr_complex), 1, const_cast<char*>(m_zeromq.c_str())));
   m_connector.connect<Block>(m_source, m_selector, gr::blocks::null_sink::make(sizeof(gr_complex)));
 
+  if (ranges.size() > static_cast<size_t>(MAX_RANGE_PROCESSORS)) {
+    Logger::warn(LABEL, "configuration creates {} processors (limit {}), reduce the scanned ranges", ranges.size(), MAX_RANGE_PROCESSORS);
+  }
+
   int index = 1;
   for (const auto& range : ranges) {
+    if (index > MAX_RANGE_PROCESSORS) {
+      Logger::warn(LABEL, "processor limit reached, skipping range: {}", formatFrequencyRange(range));
+      break;
+    }
     Logger::info(LABEL, "creating processor, index: {}, range: {}", index, formatFrequencyRange(range, GREEN));
     auto forward = gr::blocks::copy::make(sizeof(gr_complex));
     auto processor = std::make_unique<SdrProcessor>(m_config, m_device, m_remoteController, m_notification, forward, m_connector, range);
@@ -100,7 +108,16 @@ void SdrDevice::updateRecordings(const std::vector<Recording> recordings) {
            }) != recordings.end();
   };
 
-  std::erase_if(m_recorders, [isRecordingActive](const std::unique_ptr<Recorder>& recorder) { return !isRecordingActive(recorder->getRecording()); });
+  for (auto it = m_recorders.begin(); it != m_recorders.end();) {
+    if (isRecordingActive((*it)->getRecording())) {
+      ++it;
+      continue;
+    }
+    // Drain the last buffered chunk before dropping the recorder, otherwise
+    // the tail of the recording never reaches the panel.
+    (*it)->flush();
+    it = m_recorders.erase(it);
+  }
 
   if (m_recorders.size() < static_cast<size_t>(m_config.recordersCount())) {
     ignoredTransmissions.clear();

@@ -80,6 +80,9 @@ Recorder::Recorder(const Config& config, const Device& device, const std::string
 }
 
 Recorder::~Recorder() {
+  // Flush once more so the final buffered chunk is published (the destructor log
+  // below then reports the real duration instead of 0 ms for unflushed recorders).
+  flush();
   Logger::info(LABEL, "stop recorder, frequency: {}, time: {} ms", formatFrequency(m_recording.recordingFrequency, RED), getDuration().count());
   m_tb->stop();
   m_tb->wait();
