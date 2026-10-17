@@ -80,9 +80,12 @@ Recorder::Recorder(const Config& config, const Device& device, const std::string
 }
 
 Recorder::~Recorder() {
-  // Flush once more so the final buffered chunk is published (the destructor log
-  // below then reports the real duration instead of 0 ms for unflushed recorders).
-  flush();
+  // Drain the final buffered chunk before the recorder is destroyed, but only for
+  // recordings that ran at least the configured minimum time: shorter blips are
+  // intentionally discarded upstream (recordingMinTime).
+  if (getTime() - m_firstDataTime >= m_config.recordingMinTime()) {
+    flush();
+  }
   Logger::info(LABEL, "stop recorder, frequency: {}, time: {} ms", formatFrequency(m_recording.recordingFrequency, RED), getDuration().count());
   m_tb->stop();
   m_tb->wait();

@@ -113,9 +113,8 @@ void SdrDevice::updateRecordings(const std::vector<Recording> recordings) {
       ++it;
       continue;
     }
-    // Drain the last buffered chunk before dropping the recorder, otherwise
-    // the tail of the recording never reaches the panel.
-    (*it)->flush();
+    // The Recorder destructor drains the final buffered chunk (subject to the
+    // minimum recording time); just drop it here.
     it = m_recorders.erase(it);
   }
 
